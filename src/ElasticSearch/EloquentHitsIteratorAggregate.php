@@ -66,7 +66,14 @@ final class EloquentHitsIteratorAggregate implements \IteratorAggregate
             $hits = collect($hits)->map(function ($hit) use ($models) {
                 $key = $hit['_source']['__class_name'].'::'.$hit['_id'];
 
-                return isset($models[$key]) ? $models[$key] : null;
+                if (isset($models[$key])) {
+                    if (isset($hit['highlight'])) {
+                        $models[$key]->withScoutMetadata('highlight', $hit['highlight']);
+                    }
+                    return $models[$key];
+                }
+                
+                return null;
             })->filter()->all();
         }
 
